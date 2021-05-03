@@ -9,9 +9,14 @@ const cli = meow(chalk`
   $ chat <roomid>
 
   {bold {underline Options}}
-  -u --username   Set your username
+    -u --username   Set your username
+    -h --host       Set host
 `, {
   flags: {
+    host: {
+      alias: 'h',
+      type: 'string'
+    },
     username: {
       alias: 'u',
       type: 'string',

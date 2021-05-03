@@ -7,6 +7,8 @@
     "moduleResolution": "Node",
     "allowJs": false,
     "strict": true,
-    "declaration": true
+    "declaration": true,
+    "outDir": "dist",
+    "inlineSourceMap": true
   }
 }

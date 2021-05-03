@@ -3,10 +3,12 @@ import { log, sendMessage, logMessage, loopQuestion, MessagePayload } from './ut
 import * as uuid from 'uuid'
 import chalk from 'chalk'
 import clipboardy from 'clipboardy'
-import readline from 'readline'
+import Conf from 'conf'
+
 
 export type Flags = {
   username: string;
+  host?: string;
 }
 
 enum SocketEvents {
@@ -15,14 +17,33 @@ enum SocketEvents {
   ROOM_JOIN = 'room:join'
 }
 
+enum StoreKeys {
+  HOST = 'host'
+}
+
 export default async function main(input: string[], flags: Flags) {
   console.clear()
 
-  const { username } = flags;
   const [ room = uuid.v4() ] = input;
+  const { username, host } = flags;
 
+  const config = new Conf({
+    defaults: {
+      host: 't-chat.fedevitale.dev',
+      username
+    }
+  })
+
+  if ( host ) {
+    const oldHost = config.get(StoreKeys.HOST)
+    config.set(StoreKeys.HOST, host)
+    console.log(chalk`Server changed sucessfully: {red ${oldHost}} {dim =>} {green ${host}}`)
+    return
+  }
+
+  // Socket Stuff
   try {
-    const socket = io('ws://localhost:3000')
+    const socket = io(`ws://${config.get('host')}`)
 
     process.on('SIGINT', () => {
       console.log()
@@ -81,6 +102,6 @@ export default async function main(input: string[], flags: Flags) {
     })
 
   } catch (error) {
-    console.error(error)
+    log(error, 'error')
   }
 }

@@ -1,15 +1,9 @@
-import Express from 'express'
 import http from 'http'
 import { Server } from 'socket.io'
-import * as uuid from 'uuid'
 import chalk from 'chalk'
 import signale from 'signale'
 
-
-const app = Express()
-app.set('port', 3000)
-
-const server = http.createServer(app)
+const server = http.createServer()
 const io = new Server(server)
 
 type Message = {
@@ -17,13 +11,11 @@ type Message = {
   username: string;
 }
 
-
 enum SocketEvents {
   MESSAGE = 'message',
   ROOM_LEAVE = 'room:leave',
   ROOM_JOIN = 'room:join'
 }
-
 
 io.on('connect', socket => {
   let room: string;
@@ -60,13 +52,8 @@ io.on('connect', socket => {
   })
 })
 
+const PORT = process.env.PORT || 3000
 
-app.get('/get-room', (req, res) => {
-  return res.send({
-    roomId: uuid.v4()
-  })
-})
-
-server.listen(3000, function() {
-  console.log('Server started at: http://localhost:3000')
+server.listen(PORT, function() {
+  console.log(`Server started at: http://localhost:${PORT}`)
 })
