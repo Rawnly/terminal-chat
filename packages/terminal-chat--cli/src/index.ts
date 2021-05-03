@@ -1,54 +1,47 @@
 import io from 'socket.io-client'
-import meow from 'meow'
-import got from 'got'
 import { log, logMessage, sendMessage, waitForUserText } from './utils'
-import os from 'os'
+import ora from 'ora'
+import * as uuid from 'uuid'
 
-const cli = meow({
-  flags: {
-    join: {
-      type: 'string',
-    },
-    require: {
-      type: 'boolean'
-    },
-    username: {
-      type: 'string'
-    }
-  }
-})
-
-const { flags, input: [ command ] } = cli;
-
-type RequestRoomBody = {
-  roomId: string;
+export type Flags = {
+  username: string;
 }
 
-(async function main() {
-  const username = flags.username || os.userInfo().username;
+export default async function main(input: string[], flags: Flags) {
+  const spinner = ora({
+    spinner: 'bouncingBall',
+    color: 'green',
+    text: 'Connecting...',
+  })
 
-  if ( flags.require ) {
-    const { body } = await got<RequestRoomBody>('http://localhost:3000/get-room', { method: 'GET', parseJson: text => JSON.parse(text) })
-    console.log('Random room name:' + body.roomId)
-  } else if ( flags.join ) {
+  const { username } = flags;
+  const [ room = uuid.v4() ] = input;
+
+  console.clear()
+
+  spinner.start()
+  try {
     const socket = io('ws://localhost:3000')
 
     socket.io.on('open', () => {
-      log('Connected!')
+      spinner.succeed('Connection established!')
 
-      socket.emit('join-room', flags.join)
-      log("Joined: " + flags.join)
+      socket.emit('join-room', room)
+      log(`Joined: ${room}`, 'success')
 
       waitForUserText(socket, username)
     })
 
     socket.io.on('close', () => {
-      log('DISCONNECTING...')
+      log('DISCONNECTING...', 'warn')
     })
 
     socket.on('message', (payload: Record<string, string>) => {
       if ( payload.username === username ) return;
       logMessage(payload)
     })
+
+  } catch (error) {
+    console.error(error)
   }
-})()
+}

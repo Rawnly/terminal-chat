@@ -1,6 +1,7 @@
 {
   "exclude": ["node_modules"],
   "compilerOptions": {
+    "outDir": "dist",
     "esModuleInterop": true,
     "isolatedModules": true,
     "target": "ES5",
