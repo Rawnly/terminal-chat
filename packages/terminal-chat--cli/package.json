@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "chalk": "^4.1.1",
+    "got": "^11.8.2",
+    "meow": "^9.0.0",
+    "socket.io": "^4.0.1",
+    "socket.io-client": "^4.0.1",
+    "ts-node": "^9.1.1",
+    "uuid": "^8.3.2"
+  },
+  "name": "terminal-chat",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "@types/node": "^15.0.1",
+    "@types/socket.io": "^2.1.13",
+    "@types/socket.io-client": "^1.4.36",
+    "typescript": "^4.2.4"
+  }
+}

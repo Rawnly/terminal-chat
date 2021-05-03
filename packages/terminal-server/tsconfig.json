@@ -1,0 +1,12 @@
+{
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "target": "ES5",
+    "moduleResolution": "Node",
+    "allowJs": false,
+    "strict": true,
+    "declaration": true
+  }
+}
