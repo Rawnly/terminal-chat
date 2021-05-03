@@ -29,7 +29,7 @@ export default async function main(input: string[], flags: Flags) {
 
   const config = new Conf({
     defaults: {
-      host: 't-chat.fedevitale.dev',
+      host: 't-chat.fedevitale.tech',
       username
     }
   })
