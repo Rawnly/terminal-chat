@@ -2,8 +2,15 @@ import http from 'http'
 import { Server } from 'socket.io'
 import chalk from 'chalk'
 import signale from 'signale'
+import Express from 'express'
+import morgan from 'morgan'
 
-const server = http.createServer()
+const PORT = parseInt(process.env.PORT as string) || 8080;
+const HOST = process.env.HOST || '0.0.0.0'
+
+const app = Express()
+
+const server = http.createServer(app)
 const io = new Server(server)
 
 type Message = {
@@ -52,8 +59,14 @@ io.on('connect', socket => {
   })
 })
 
-const PORT = process.env.PORT || 3000
 
-server.listen(PORT, function() {
-  console.log(`Server started at: http://localhost:${PORT}`)
+app.use(morgan('tiny'))
+app.get('*', (req, res) => {
+  return res.send({
+    message: 'Hello World'
+  })
+})
+
+server.listen(PORT, HOST, function() {
+  console.log(`Server started at: http://${HOST}:${PORT}`)
 })
