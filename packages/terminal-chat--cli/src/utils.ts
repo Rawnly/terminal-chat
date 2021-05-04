@@ -1,5 +1,6 @@
 import chalk from 'chalk'
 import readline from 'readline'
+import Crypto, { enc } from 'crypto-js'
 
 export const rl = readline.createInterface({
   input: process.stdin,
@@ -31,8 +32,9 @@ const extractColorAndText = (message: string): { message:string, color?:string} 
   return { color, message: text }
 }
 
-export function logMessage({ username: user, body }: MessagePayload, username: string) {
-  const { color = 'white', message } = extractColorAndText(body)
+export function logMessage({ username: user, body }: MessagePayload, room: string) {
+  const decryptedMessage = decrypt(body, room)
+  const { color = 'white', message } = extractColorAndText(decryptedMessage)
 
   const msg = (chalk as any)[color](message);
 
@@ -83,17 +85,29 @@ export function log(message: string, type: LogType = 'success'): void {
   }
 }
 
-export async function updateHeader(usernmae: string, count: number = 5) {
-  readline.clearLine(process.stdout, -1)
+
+export function encrypt(content: string, key: string) {
+  return Crypto.AES
+    .encrypt(content, key)
+    .toString()
 }
 
-export async function sendMessage(socket: SocketIOClient.Socket, message: string, username: string) {
+export function decrypt(content: string, key: string) {
+  return Crypto.AES
+    .decrypt(content, key)
+    .toString(Crypto.enc.Utf8)
+}
+
+export async function sendMessage(
+  socket: SocketIOClient.Socket,
+  message: string,
+  room: string,
+  username: string
+) {
   socket.emit('message', {
     username,
-    body: message
+    body: encrypt(message, room)
   })
-
-  // console.debug(chalk`{dim [??] Sent message ${message} from @${username}}`)
 }
 
 export const askQuestion = (question: string, shouldClose: boolean = true) : Promise<string> => new Promise((resolve) => {
@@ -105,12 +119,13 @@ export const askQuestion = (question: string, shouldClose: boolean = true) : Pro
 
 export const loopQuestion = async (
   socket: SocketIOClient.Socket,
+  room: string,
   username: string
 ) => {
   try {
     const answer = await askQuestion(chalk`{green {bold @you}}: `, false)
-    await sendMessage(socket, answer, username)
-    loopQuestion(socket, username)
+    await sendMessage(socket, answer, room, username)
+    loopQuestion(socket, room, username)
   } catch (error) {
     console.error(error)
     return null

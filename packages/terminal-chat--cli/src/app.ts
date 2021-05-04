@@ -1,10 +1,9 @@
 import io from 'socket.io-client'
-import { log, sendMessage, logMessage, loopQuestion, MessagePayload } from './utils'
+import { log, logMessage, loopQuestion, MessagePayload } from './utils'
 import * as uuid from 'uuid'
-import chalk from 'chalk'
+import chalk, { cyan } from 'chalk'
 import clipboardy from 'clipboardy'
-import Conf from 'conf'
-
+import Settings from 'conf'
 
 export type Flags = {
   username: string;
@@ -18,7 +17,8 @@ enum SocketEvents {
 }
 
 enum StoreKeys {
-  HOST = 'host'
+  HOST = 'host',
+  USERNAME = 'host'
 }
 
 export default async function main(input: string[], flags: Flags) {
@@ -27,23 +27,28 @@ export default async function main(input: string[], flags: Flags) {
   const [ room = uuid.v4() ] = input;
   const { username, host } = flags;
 
-  const config = new Conf({
+  const config = new Settings({
+    projectName: 't-chat',
+    projectVersion: '0.0.1',
     defaults: {
-      host: 't-chat.fedevitale.tech',
-      username
+      [StoreKeys.HOST]: 't-chat.fedevitale.tech',
+      [StoreKeys.USERNAME]: username
     }
   })
 
+
   if ( host ) {
     const oldHost = config.get(StoreKeys.HOST)
+
     config.set(StoreKeys.HOST, host)
     console.log(chalk`Server changed sucessfully: {red ${oldHost}} {dim =>} {green ${host}}`)
-    return
+
+    process.exit(0)
   }
 
   // Socket Stuff
   try {
-    const socket = io(`ws://${config.get('host')}`)
+    const socket = io(`ws://${config.get(StoreKeys.HOST)}`)
 
     process.on('SIGINT', () => {
       console.log()
@@ -75,7 +80,7 @@ export default async function main(input: string[], flags: Flags) {
 
       console.log('')
 
-      loopQuestion(socket, username)
+      loopQuestion(socket, room, username)
     })
 
     socket.io.on('close', () => {
@@ -98,7 +103,7 @@ export default async function main(input: string[], flags: Flags) {
 
     socket.on(SocketEvents.MESSAGE, (payload: MessagePayload) => {
       if ( payload.username === username ) return;
-      logMessage(payload, username)
+      logMessage(payload, room)
     })
 
   } catch (error) {
